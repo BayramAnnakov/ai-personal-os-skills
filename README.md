@@ -67,20 +67,25 @@ Research a topic across platforms and publish a LinkedIn post in your voice.
 
 ## Installation
 
-### Option 1: Plugin marketplace (recommended)
+### Option 1: Plugin install (recommended)
 
-In Claude Code:
+In Claude Code, add the marketplace and install:
 ```
-/install-plugin BayramAnnakov/ai-personal-os-skills
+/plugin marketplace add BayramAnnakov/ai-personal-os-skills
+/plugin install onboarding@ai-personal-os-skills
+/plugin install daily-log@ai-personal-os-skills
+/plugin install atomize@ai-personal-os-skills
+/plugin install linkedin-research-post@ai-personal-os-skills
+/reload-plugins
 ```
 
-### Option 2: Manual install (copy skills you need)
+### Option 2: Clone and copy skills
 
 ```bash
 # Clone the repo
 git clone https://github.com/BayramAnnakov/ai-personal-os-skills.git
 
-# Copy all skills to your Claude Code skills directory
+# Copy all skills at once
 cp -r ai-personal-os-skills/skills/* ~/.claude/skills/
 
 # Or copy individual skills
