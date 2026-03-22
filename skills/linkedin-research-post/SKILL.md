@@ -73,8 +73,8 @@ Find the 5 most engaged posts. For each note:
 
 Summarize: what angles get traction, what's overdone, what's missing.
 
-If mcp__anysite-mcp tools fail on the first call, STOP and report the error.
-Do NOT fall back to WebSearch - report that AnySite MCP is not working.
+PRIORITY: Try mcp__anysite-mcp tools first. If they fail, fall back to WebSearch/WebFetch.
+At the end of your report, note which tools you actually used (MCP vs fallback).
 ```
 
 **Sub-agent 2 - Community perspective:**
@@ -89,8 +89,8 @@ You MUST use these exact MCP tools (not WebSearch, not WebFetch):
 Find honest opinions, complaints, praised solutions.
 Note where community sentiment DIFFERS from LinkedIn's polished narrative.
 
-If mcp__anysite-mcp tools fail on the first call, STOP and report the error.
-Do NOT fall back to WebSearch - report that AnySite MCP is not working.
+PRIORITY: Try mcp__anysite-mcp tools first. If they fail, fall back to WebSearch/WebFetch.
+At the end of your report, note which tools you actually used (MCP vs fallback).
 ```
 
 **Sub-agent 3 - Deep content:**
@@ -105,8 +105,8 @@ You MUST use these exact MCP tools (not WebSearch, not WebFetch):
 
 Extract key frameworks, data points, expert claims.
 
-If mcp__anysite-mcp tools fail on the first call, STOP and report the error.
-Do NOT fall back to WebSearch - report that AnySite MCP is not working.
+PRIORITY: Try mcp__anysite-mcp tools first. If they fail, fall back to WebSearch/WebFetch.
+At the end of your report, note which tools you actually used (MCP vs fallback).
 ```
 
 **After launching agents:** Check their output within 15-20 seconds to verify they are using the MCP tools, not WebSearch/WebFetch. If any agent is using the wrong tools, send a corrective message immediately via SendMessage with the exact tool names.
