@@ -1,0 +1,28 @@
+{
+  "name": "ai-personal-os-skills",
+  "owner": {
+    "name": "Bayram Annakov"
+  },
+  "plugins": [
+    {
+      "name": "onboarding",
+      "source": "./",
+      "description": "Personal AI onboarding - creates CLAUDE.md, user-profile, course-goals, and SOUL.md through a conversational interview."
+    },
+    {
+      "name": "daily-log",
+      "source": "./",
+      "description": "Daily 5-minute energy-mood-focus journal with auto-enrichment pattern analysis every 3rd entry."
+    },
+    {
+      "name": "atomize",
+      "source": "./",
+      "description": "Extract atomic ideas from text into Zettelkasten-style notes with tags and wikilink connections."
+    },
+    {
+      "name": "linkedin-research-post",
+      "source": "./",
+      "description": "Research a topic across LinkedIn, Reddit, YouTube via sub-agents, then draft and publish a LinkedIn post in your voice."
+    }
+  ]
+}
