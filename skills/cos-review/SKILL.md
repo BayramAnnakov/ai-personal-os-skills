@@ -67,7 +67,6 @@ Scan automatically — don't ask, CHECK. Report what exists and what's missing.
   - **Linux:** run `crontab -l 2>/dev/null` and search for morning/claude/daily entries
 - Agent teams: read `~/.claude/settings.json`, check if `env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` equals "1" (it's stored in the `env` dict, NOT as a shell variable)
 - Hooks: read `~/.claude/settings.json`, check if `hooks` key has any entries (not just exists — check it's non-empty)
-- n8n: try `curl -s http://localhost:5678/api/v1/workflows` — if JSON returned, n8n is running
 
 **L5: Delivers Results**
 - Check MULTIPLE paths for morning briefings (users store them differently):

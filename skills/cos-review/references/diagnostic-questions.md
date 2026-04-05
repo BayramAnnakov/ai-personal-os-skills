@@ -27,7 +27,7 @@ Answer Y (yes) or N (no). 1 point per yes.
 
 ### LAYER 4: TAKES INITIATIVE (autonomy)
 16. Do you have at least one scheduled task (Claude Desktop or LaunchAgent)?
-17. Do you have an n8n workflow or Telegram bot that runs without you?
+17. Do you have a Telegram bot or automation that runs without you?
 18. Have you used sub-agents to run parallel research tasks?
 19. Does any part of your system run before you wake up?
 20. Have you set up hooks or triggers that fire on specific events?

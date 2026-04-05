@@ -45,7 +45,6 @@ When a layer has gaps, suggest the highest-leverage action from this list. ONE a
 | Gap | Action | Impact |
 |-----|--------|--------|
 | No scheduled tasks | "Mac: create a LaunchAgent plist (template in setup-guides/). Windows: `schtasks /create /tn MorningBriefing /tr \"claude --print 'Run /morning'\" /sc daily /st 07:00`. Linux: add to crontab." | System works while you sleep |
-| No n8n | "Set up n8n for Telegram bot automation. Your CoS responds to messages without you opening a terminal." | Always-on availability |
 | No agent teams | "Enable agent teams: `claude settings set env CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS 1` then restart Claude Code" | Staff that collaborates |
 | No hooks | "Add a SessionStart hook to load today's briefing: add `hooks.SessionStart` to `~/.claude/settings.json` (template in setup-guides/)" | Your CoS reads today's briefing before every session |
 | Nothing runs before you | "The single biggest upgrade: schedule /morning for 7 AM. Everything else follows." | The system serves YOU, not the other way around |

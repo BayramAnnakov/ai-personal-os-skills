@@ -63,7 +63,6 @@ How to test each component of the CoS system. All checks should be try/catch —
 |-----------|-----|---------|-------|
 | Scheduled tasks | `ls ~/Library/LaunchAgents/ 2>/dev/null \| grep -i "morning\|autopilot\|claude\|daily\|briefing"` | `schtasks /query /fo LIST 2>NUL \| findstr /i "morning claude daily briefing"` | `crontab -l 2>/dev/null \| grep -i "morning\|claude\|daily"` |
 | Agent teams env | Read `~/.claude/settings.json` → check `env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` equals `"1"` | Same | Same |
-| n8n | `curl -s http://localhost:5678/api/v1/workflows 2>/dev/null` | Same | Same |
 | Hooks | Read `~/.claude/settings.json` → check `hooks` key is non-empty dict | Same | Same |
 
 **Note:** Agent teams env is stored in `settings.json` under `env` as a dict key, NOT as a shell environment variable. Do NOT use `echo $CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` — read the settings file instead.
