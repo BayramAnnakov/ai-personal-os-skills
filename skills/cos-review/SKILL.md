@@ -154,10 +154,15 @@ Based on weakest layer, suggest a prioritized list. Fix BOTTOM-UP (L1 before L4)
 
 For each priority:
 1. Explain WHY it matters (one sentence)
-2. Ask: "Want me to set this up now? (y/n)"
-3. If yes, use the relevant guide from `references/setup-guides/`
-4. Test it works
-5. Move to next priority
+2. Check understanding: "Do you know what [concept] is, or want me to explain first?" If the user is unsure, give a brief plain-language explanation before suggesting the fix. Examples:
+   - Hooks → "Hooks are automatic actions that fire at specific moments — like your CoS reading today's briefing before every conversation, without you asking."
+   - Agent teams → "Agent teams are multiple AI agents that talk to EACH OTHER and coordinate, unlike sub-agents which just report back to you."
+   - SOUL.md → "SOUL.md defines your AI's voice — how it writes, what tone it uses, what words it avoids. Without it, every output sounds generic."
+   - Ollama → "Ollama lets you run AI models on your own machine. Your data never leaves your laptop — useful for sensitive work."
+3. Ask: "Want me to set this up now? (y/n)"
+4. If yes, use the relevant guide from `references/setup-guides/`
+5. Test it works
+6. Move to next priority
 
 Read `references/layer-actions.md` for specific actions per layer gap.
 
