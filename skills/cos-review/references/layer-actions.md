@@ -31,7 +31,7 @@ When a layer has gaps, suggest the highest-leverage action from this list. ONE a
 
 | Gap | Action | Impact |
 |-----|--------|--------|
-| No /morning | "Create a starter /morning skill. I have a template ready." | The capstone daily habit |
+| No /morning | "Want me to help you build /morning? I'll interview you about your sources, intelligence level, privacy needs, and what makes your system learn — then build the SKILL.md." | The capstone daily habit — flips 3-5 questions across L3/L4/L5 |
 | No custom skills | "Pick the task you do most often. Describe it to me. I'll write the SKILL.md." | Your first playbook |
 | No /daily-log | "Install /daily-log from the course skills repo." | Daily energy/mood/focus tracking |
 | No /atomize | "Install /atomize from the course skills repo." | Knowledge extraction habit |
@@ -46,7 +46,8 @@ When a layer has gaps, suggest the highest-leverage action from this list. ONE a
 |-----|--------|--------|
 | No scheduled tasks | "Mac: create a LaunchAgent plist (template in setup-guides/). Windows: `schtasks /create /tn MorningBriefing /tr \"claude --print 'Run /morning'\" /sc daily /st 07:00`. Linux: add to crontab." | System works while you sleep |
 | No agent teams | "Enable agent teams: `claude settings set env CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS 1` then restart Claude Code" | Staff that collaborates |
-| No hooks | "Add a SessionStart hook to load today's briefing: add `hooks.SessionStart` to `~/.claude/settings.json` (template in setup-guides/)" | Your CoS reads today's briefing before every session |
+| No hooks | "Add two hooks to settings.json: (1) SessionStart to load today's briefing — `\"SessionStart\": [{\"matcher\": \"\", \"hooks\": [{\"type\": \"command\", \"command\": \"cat ~/morning-briefings/$(date +%Y-%m-%d).md 2>/dev/null\", \"timeout\": 10}]}]` (2) PreCompact to save transcripts before compaction (set `async: true`). For complex logic, create script files in `~/.claude/hooks/` instead of inline commands." | CoS reads briefing before every session + transcripts preserved |
+| No two-way access | "Set up Telegram channels (`/plugin install telegram@claude-plugins-official`, then `claude --channels`) or Claude Desktop Dispatch so you can reach your CoS from your phone" | Two-way communication, not just push notifications |
 | Nothing runs before you | "The single biggest upgrade: schedule /morning for 7 AM. Everything else follows." | The system serves YOU, not the other way around |
 
 **Build offer:** "Want me to create the LaunchAgent/scheduled task now?"

@@ -37,8 +37,12 @@ Scan automatically — don't ask, CHECK. Report what exists and what's missing.
 
 **L1: Knows You**
 - Read `~/.claude/CLAUDE.md` — exists? word count?
-- Search for `SOUL.md` — use Glob to check: `~/.claude/SOUL.md`, `~/SOUL.md`, project root, `~/.claude/skills/*/SOUL.md`, and `Glob **/SOUL.md` in home (max depth 5, exclude node_modules/.git/Library)
-- Search for `user-profile.md` — same approach as SOUL.md
+- Search for `SOUL.md`:
+  1. Check `~/.claude/SOUL.md` first (the standard global location)
+  2. If not there, Glob `**/SOUL.md` in home (max depth 5, exclude node_modules/.git/Library)
+  3. If found elsewhere but NOT in `~/.claude/`: report "SOUL.md exists at [path] but is not globally accessible. Recommend: copy to `~/.claude/SOUL.md`"
+  4. Check if `~/.claude/CLAUDE.md` references SOUL.md — if not, flag: "SOUL.md won't be auto-loaded unless CLAUDE.md references it"
+- Search for `user-profile.md` — same 4-step approach as SOUL.md
 - Count project-level CLAUDE.md files — use Glob `**/CLAUDE.md` from home (max depth 4, exclude node_modules/.git)
 - Check memory — use Glob `~/.claude/projects/*/memory/*.md` and count entries
 
@@ -58,6 +62,10 @@ Scan automatically — don't ask, CHECK. Report what exists and what's missing.
 **L3: Has Procedures**
 - List skills: Glob `~/.claude/skills/*/SKILL.md` — count and list names
 - Check for key skills: morning, daily-log, atomize, council, cos-review
+- If /morning skill is missing, check for EQUIVALENT morning systems:
+  - Look for LaunchAgents/schtasks/cron with "morning" or "autopilot" (from L4 check)
+  - Search common directories for morning scripts: `~/GH/*/morning*`, `~/scripts/morning*`
+  - If found: "Your morning system exists at [path] as a [type]. This works! Optionally create a /morning SKILL.md wrapper for consistency."
 - Count total available slash commands (skills + built-in)
 
 **L4: Takes Initiative**
@@ -67,6 +75,23 @@ Scan automatically — don't ask, CHECK. Report what exists and what's missing.
   - **Linux:** run `crontab -l 2>/dev/null` and search for morning/claude/daily entries
 - Agent teams: read `~/.claude/settings.json`, check if `env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` equals "1" (it's stored in the `env` dict, NOT as a shell variable)
 - Hooks: read `~/.claude/settings.json`, check if `hooks` key has any entries (not just exists — check it's non-empty)
+  - If hooks exist, enumerate which event types are configured (e.g., SessionStart, PreCompact, PostToolUse, Stop)
+  - Check that hook commands reference scripts that actually exist (if command points to a `.sh` file, verify it's there)
+  - If empty, proactively suggest two hooks:
+    1. **SessionStart** — loads today's briefing into every session:
+       ```json
+       "SessionStart": [{"matcher": "", "hooks": [{"type": "command", "command": "cat ~/morning-briefings/$(date +%Y-%m-%d).md 2>/dev/null || echo 'No briefing today'", "timeout": 10}]}]
+       ```
+    2. **PreCompact** — saves session transcripts before context compaction:
+       ```json
+       "PreCompact": [{"matcher": "", "hooks": [{"type": "command", "command": "your-transcript-backup-script.sh", "async": true, "timeout": 10}]}]
+       ```
+  - If only SessionStart exists, suggest PreCompact as the next hook
+  - Note: for complex hook logic, recommend external script files (e.g., `~/.claude/hooks/session-start.sh`) instead of inline commands
+- Two-way access: check if the user can reach their CoS from their phone
+  - Check for Telegram channel plugin (`telegram@claude-plugins-official` in enabledPlugins)
+  - Check for Claude Desktop Dispatch (ask the user)
+  - If neither: suggest Telegram channels (`/plugin install telegram@claude-plugins-official`, then `claude --channels`) or Claude Desktop Dispatch as options
 
 **L5: Delivers Results**
 - Check MULTIPLE paths for morning briefings (users store them differently):
@@ -133,6 +158,26 @@ For each priority:
 
 Read `references/layer-actions.md` for specific actions per layer gap.
 
+#### Guided /morning Builder
+
+If /morning is missing (one of the top priorities — it flips 3-5 questions across L3, L4, and L5), offer to build it through an interview:
+
+> "Your biggest gap is /morning. Want me to help you build it? I'll interview you."
+
+If yes, ask these questions ONE AT A TIME, waiting for each answer:
+1. What data sources do you have? (Gmail, Calendar, AnySite, Vault, Telegram — list what works)
+2. Single agent, sub-agents, or agent team with Researcher/Analyst/Learner roles?
+3. Do you handle sensitive data that should stay local via Ollama?
+4. How should the briefing be delivered? (Telegram, terminal, saved to file)
+5. How should your system LEARN from yesterday's briefing?
+6. When this breaks at 7 AM, what do you check first?
+
+After all answers, build the SKILL.md at `~/.claude/skills/morning/SKILL.md`.
+Use SOUL.md for voice if it exists. Save output to `~/morning-briefings/YYYY-MM-DD.md`.
+Include a Learner role or step that reads yesterday's briefing and feeds patterns forward.
+
+Then test: run `/morning` and verify it produces output. Debug if needed.
+
 Only do 2-3 priorities per session. "Good enough for today. Do the rest this week."
 
 ### Step 5: Schedule First Review
@@ -173,6 +218,7 @@ Actually TEST the system — don't ask, VERIFY:
 - Check memory entry count (Glob `~/.claude/projects/*/memory/*.md`) — growing or stagnant?
 - Check Ollama: run `ollama list`
 - Check scheduled tasks (platform-aware: LaunchAgents on Mac, schtasks on Windows, crontab on Linux)
+- Check hooks in `~/.claude/settings.json`: which event types are configured? If hook commands reference script files, verify they exist.
 
 Report with status icons:
 ```
@@ -182,6 +228,7 @@ SYSTEM HEALTH
 ✅ /morning           last run: today 07:00
 ✅ Memory             24 entries (↑3 since last review)
 ⚠️ Vault              last /atomize: 8 days ago
+✅ Hooks              SessionStart + PreCompact configured
 ```
 
 ### Step 4: Conversation Pattern Check
