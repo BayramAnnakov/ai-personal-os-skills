@@ -61,6 +61,8 @@ Scan automatically — don't ask, CHECK. Report what exists and what's missing.
   - Note: cloud models via Ollama are fast and cheap but data goes to a third-party provider. Local models are fully private but require a strong GPU — slow on laptops.
   - If not installed and user has privacy or cost concerns, suggest: `brew install ollama` then `ollama launch claude --model kimi-k2.5:cloud` for cost savings, or local model for full privacy
 - ActivityWatch (focus/productivity tracking): run `curl -s http://localhost:5600/api/0/info 2>/dev/null` via Bash. If responds, it's running. If not, check if `aw-qt` or `aw-server` process exists. If installed but not running, note it. If not installed, suggest as optional: "ActivityWatch tracks your screen time and focus patterns — your /morning can use it to report deep work hours and app usage. Install from https://activitywatch.net"
+  - If ActivityWatch IS running, check for the analysis skill: Glob `~/.claude/skills/activitywatch*/SKILL.md`
+  - If AW runs but no analysis skill: "You have ActivityWatch collecting data but no way to analyze it. Install the analysis skill from https://github.com/BayramAnnakov/activitywatch-analysis-skill — it calculates focus scores, detects death loops (repetitive app switching), and generates weekly insights. After installing, run it once with defaults then review uncategorized apps to calibrate for your workflow."
 - Report which sources are installed, which respond, which have expired tokens
 
 **L3: Has Procedures**

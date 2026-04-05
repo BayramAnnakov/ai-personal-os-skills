@@ -24,6 +24,7 @@ When a layer has gaps, suggest the highest-leverage action from this list. ONE a
 | No Telegram | "Install Telegram plugin: `/plugin install telegram@claude-plugins-official`" | CoS reaches you on your phone |
 | No Ollama | "Mac: `brew install ollama` / Windows: download from ollama.com. For cost savings: `ollama launch claude --model kimi-k2.5:cloud` (fast, cheap, no GPU). For full privacy: `ollama pull qwen3.5` then `ollama launch claude --model qwen3.5` (slow on laptops, needs strong GPU; set `OLLAMA_CONTEXT_LENGTH=64000 ollama serve`)." | Alternative models for cost or privacy |
 | No ActivityWatch | "Install from https://activitywatch.net — tracks screen time and focus patterns. Your /morning can report deep work hours and app usage." | CoS knows how you actually spend your time |
+| AW running, no analysis | "Install the analysis skill: `cp -r <path>/activitywatch-analysis-skill ~/.claude/skills/activitywatch-analysis` (from github.com/BayramAnnakov/activitywatch-analysis-skill). Run once with defaults, review uncategorized apps, calibrate category_config.json for your workflow." | Focus scores, death loop detection, weekly insights |
 | Token expired | "Re-install the plugin: `/plugin install [name]@claude-plugins-official` — refreshes OAuth" | Restores broken connection |
 
 **Build offer:** "Want me to install [MCP] now? I'll walk you through the auth."
