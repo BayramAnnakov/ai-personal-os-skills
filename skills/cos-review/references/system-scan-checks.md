@@ -40,6 +40,7 @@ How to test each component of the CoS system. All checks should be try/catch —
 | AnySite | Try `duckduckgo_search` "test" | Returns results | Not configured |
 | Chrome MCP | Check `.mcp.json` for chrome-devtools entry | Configured | Not found |
 | Ollama | Run `ollama list` via Bash | Shows models | Not installed or no models |
+| ActivityWatch | `curl -s http://localhost:5600/api/0/info` via Bash | Returns JSON with version | Not running or not installed |
 
 **Important:** MCP test calls should be minimal — don't read emails or messages, just verify the connection works.
 
