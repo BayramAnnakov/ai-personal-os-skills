@@ -64,6 +64,7 @@ How to test each component of the CoS system. All checks should be try/catch —
 | Scheduled tasks | `ls ~/Library/LaunchAgents/ 2>/dev/null \| grep -i "morning\|autopilot\|claude\|daily\|briefing"` | `schtasks /query /fo LIST 2>NUL \| findstr /i "morning claude daily briefing"` | `crontab -l 2>/dev/null \| grep -i "morning\|claude\|daily"` |
 | Agent teams env | Read `~/.claude/settings.json` → check `env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` equals `"1"` | Same | Same |
 | Hooks | Read `~/.claude/settings.json` → check `hooks` key is non-empty dict. Enumerate event types (SessionStart, PreCompact, etc.). If hook commands reference `.sh` scripts, verify those files exist. | Same | Same |
+| Heartbeat | Check for `~/.claude/skills/heartbeat/SKILL.md`. Check scheduled tasks for "heartbeat" pattern. Check `~/heartbeat.log` — exists? last modified within 24h? | Same (`schtasks /query` + `findstr heartbeat`) | Same (`crontab -l` + `grep heartbeat`) |
 
 **Note:** Agent teams env is stored in `settings.json` under `env` as a dict key, NOT as a shell environment variable. Do NOT use `echo $CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` — read the settings file instead.
 

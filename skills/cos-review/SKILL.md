@@ -91,6 +91,13 @@ Scan automatically — don't ask, CHECK. Report what exists and what's missing.
        ```
   - If only SessionStart exists, suggest PreCompact as the next hook
   - Note: for complex hook logic, recommend external script files (e.g., `~/.claude/hooks/session-start.sh`) instead of inline commands
+- Heartbeat (periodic sweep between sessions):
+  - Check for a `/heartbeat` skill: Glob `~/.claude/skills/heartbeat/SKILL.md`
+  - Check for a periodic LaunchAgent/cron matching "heartbeat" in addition to "morning"
+  - Check `~/heartbeat.log` for recent entries (if file exists, when was it last updated?)
+  - If no heartbeat exists, explain the concept and offer to build it:
+    "Your CoS only wakes when you start a session or when /morning runs at 7 AM. Between those moments, it's dormant — emails arrive, calendar changes, deadlines approach, and your CoS has no idea. A heartbeat is a silent periodic sweep (every 2-4 hours) that checks for changes and only pings you via Telegram if something needs attention. Think of it as the difference between checking your phone once a day vs having a smart notification system."
+  - If they want it, use the Guided Heartbeat Builder (see below)
 - Two-way access: check if the user can reach their CoS from their phone
   - Check for Telegram channel plugin (`telegram@claude-plugins-official` in enabledPlugins)
   - Check for Claude Desktop Dispatch (ask the user)
@@ -186,6 +193,47 @@ Include a Learner role or step that reads yesterday's briefing and feeds pattern
 
 Then test: run `/morning` and verify it produces output. Debug if needed.
 
+#### Guided Heartbeat Builder
+
+If the user has /morning working but no periodic awareness between sessions, offer to build a heartbeat:
+
+> "Your /morning runs at 7 AM. But between then and your next session, your CoS is dormant. Want me to build a /heartbeat that checks for changes every few hours and only pings you when something needs attention?"
+
+If yes, ask these questions ONE AT A TIME:
+1. What should it check? (unread emails, calendar next 2 hours, approaching deadlines, task file changes)
+2. How often? (every 2 hours, every 4 hours, 3x/day at 10am/1pm/5pm)
+3. When should it NOTIFY you vs stay silent? (only urgent items? any new email from key people? calendar conflicts?)
+4. How should it notify? (Telegram message, save to ~/heartbeat.log, both)
+5. Should it auto-resolve safe items? (e.g., acknowledge meeting invites, file routine emails) Or just report?
+
+After answers, build two things:
+
+**1. The /heartbeat skill** at `~/.claude/skills/heartbeat/SKILL.md`:
+```
+Steps:
+1. SCAN — Check each data source (email count + urgent senders, calendar next 2h, task deadlines)
+2. TRIAGE — For each item: urgent (notify now), routine (auto-resolve if allowed), ignorable (skip)
+3. ACT — Auto-resolve safe items if user opted in (acknowledge, file, update task list)
+4. NOTIFY — If anything needs human attention → send Telegram message with ONE sentence per item
+5. LOG — Append timestamp + summary to ~/heartbeat.log
+6. SILENT — If nothing changed: log "HEARTBEAT_OK", send no notification
+```
+
+**2. The scheduled trigger:**
+- Mac: create a LaunchAgent plist at `~/Library/LaunchAgents/com.user.heartbeat.plist` that runs `claude --print "Run /heartbeat"` at the chosen intervals
+- Windows: `schtasks /create /tn "Heartbeat" /tr "claude --print \"Run /heartbeat\"" /sc daily /st 10:00` (repeat for each time slot)
+- Linux: add crontab entries for each time slot
+
+Test: run `/heartbeat` manually first. Verify it stays silent when nothing is urgent. Then enable the schedule.
+
+**Growth path to explain to the user:**
+```
+Level 1: SessionStart hook    — CoS loads context when YOU start talking (you have this)
+Level 2: /morning at 7 AM     — CoS prepares your day once (you have this)
+Level 3: /heartbeat every 2-4h — CoS checks for changes, pings you only when needed (building now)
+Level 4: Always-on Telegram    — CoS listens 24/7, you can ask anytime from your phone
+```
+
 Only do 2-3 priorities per session. "Good enough for today. Do the rest this week."
 
 ### Step 5: Schedule First Review
@@ -227,6 +275,7 @@ Actually TEST the system — don't ask, VERIFY:
 - Check Ollama: run `ollama list`
 - Check scheduled tasks (platform-aware: LaunchAgents on Mac, schtasks on Windows, crontab on Linux)
 - Check hooks in `~/.claude/settings.json`: which event types are configured? If hook commands reference script files, verify they exist.
+- Check heartbeat: does `/heartbeat` skill exist? Is it scheduled? Check `~/heartbeat.log` for recent entries.
 
 Report with status icons:
 ```
@@ -237,6 +286,7 @@ SYSTEM HEALTH
 ✅ Memory             24 entries (↑3 since last review)
 ⚠️ Vault              last /atomize: 8 days ago
 ✅ Hooks              SessionStart + PreCompact configured
+✅ Heartbeat          last sweep: 2h ago, HEARTBEAT_OK
 ```
 
 ### Step 4: Conversation Pattern Check
@@ -337,6 +387,7 @@ YOUR CoS HEALTH — [DATE]
 ✅ Memory             24 entries
 ⚠️ Vault              last /atomize: 8 days ago
 ✅ Hooks              SessionStart configured
+✅ Heartbeat          last sweep: 2h ago (HEARTBEAT_OK)
 ✅ Scheduled task     LaunchAgent active (Mac)
 
 ISSUES: 1 critical, 1 warning

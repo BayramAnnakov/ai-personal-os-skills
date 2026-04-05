@@ -47,10 +47,11 @@ When a layer has gaps, suggest the highest-leverage action from this list. ONE a
 | No scheduled tasks | "Mac: create a LaunchAgent plist (template in setup-guides/). Windows: `schtasks /create /tn MorningBriefing /tr \"claude --print 'Run /morning'\" /sc daily /st 07:00`. Linux: add to crontab." | System works while you sleep |
 | No agent teams | "Enable agent teams: `claude settings set env CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS 1` then restart Claude Code" | Staff that collaborates |
 | No hooks | "Add two hooks to settings.json: (1) SessionStart to load today's briefing — `\"SessionStart\": [{\"matcher\": \"\", \"hooks\": [{\"type\": \"command\", \"command\": \"cat ~/morning-briefings/$(date +%Y-%m-%d).md 2>/dev/null\", \"timeout\": 10}]}]` (2) PreCompact to save transcripts before compaction (set `async: true`). For complex logic, create script files in `~/.claude/hooks/` instead of inline commands." | CoS reads briefing before every session + transcripts preserved |
+| No heartbeat | "Your CoS only wakes at 7 AM and when you open a session. Between those moments it is dormant. Want me to build a /heartbeat? A silent sweep every 2-4 hours that checks email, calendar, and deadlines — and only pings you via Telegram when something actually needs attention." | CoS becomes proactively aware throughout the day, not just at 7 AM |
 | No two-way access | "Set up Telegram channels (`/plugin install telegram@claude-plugins-official`, then `claude --channels`) or Claude Desktop Dispatch so you can reach your CoS from your phone" | Two-way communication, not just push notifications |
 | Nothing runs before you | "The single biggest upgrade: schedule /morning for 7 AM. Everything else follows." | The system serves YOU, not the other way around |
 
-**Build offer:** "Want me to create the LaunchAgent/scheduled task now?"
+**Build offer:** "Want me to create the /heartbeat skill and schedule it now?"
 
 ## L5: DELIVERS RESULTS — Output
 
