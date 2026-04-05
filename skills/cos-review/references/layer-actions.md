@@ -22,7 +22,7 @@ When a layer has gaps, suggest the highest-leverage action from this list. ONE a
 | No Calendar | "Install Calendar plugin: `/plugin install google-calendar@claude-plugins-official`" | CoS knows your schedule |
 | No AnySite | "Install AnySite MCP for LinkedIn/Twitter/Reddit research. See course gist for setup." | CoS can research the web |
 | No Telegram | "Install Telegram plugin: `/plugin install telegram@claude-plugins-official`" | CoS reaches you on your phone |
-| No Ollama | "Mac: `brew install ollama && ollama pull qwen3.5:7b` / Windows: download from ollama.com, then `ollama pull qwen3.5:7b`" | Sensitive data stays local |
+| No Ollama | "Mac: `brew install ollama && ollama pull qwen3.5` / Windows: download from ollama.com, then `ollama pull qwen3.5`. IMPORTANT: set `OLLAMA_CONTEXT_LENGTH=64000 ollama serve` before using with Claude Code." | Sensitive data stays local |
 | Token expired | "Re-install the plugin: `/plugin install [name]@claude-plugins-official` — refreshes OAuth" | Restores broken connection |
 
 **Build offer:** "Want me to install [MCP] now? I'll walk you through the auth."
@@ -33,9 +33,9 @@ When a layer has gaps, suggest the highest-leverage action from this list. ONE a
 |-----|--------|--------|
 | No /morning | "Want me to help you build /morning? I'll interview you about your sources, intelligence level, privacy needs, and what makes your system learn — then build the SKILL.md." | The capstone daily habit — flips 3-5 questions across L3/L4/L5 |
 | No custom skills | "Pick the task you do most often. Describe it to me. I'll write the SKILL.md." | Your first playbook |
-| No /daily-log | "Install /daily-log from the course skills repo." | Daily energy/mood/focus tracking |
-| No /atomize | "Install /atomize from the course skills repo." | Knowledge extraction habit |
-| No /council | "Install /council for multi-perspective decisions." | Better strategic decisions |
+| No /daily-log | "Create a /daily-log skill: ask me 3 questions (energy, mood, focus), log to a daily file. I'll write the SKILL.md now." | Daily energy/mood/focus tracking |
+| No /atomize | "Create a /atomize skill: take any input (article, conversation, idea), extract key insights, save as an atomic note in your vault." | Knowledge extraction habit |
+| No /council | "Create a /council skill: simulate 3-5 expert perspectives on a question, then synthesize. I'll write the SKILL.md now." | Better strategic decisions |
 | Few skills (<5) | "Law #3: what did you do manually 3+ times? That's your next skill." | Organic growth |
 
 **Build offer:** "Want me to write that skill now? Tell me the task and I'll create the SKILL.md."

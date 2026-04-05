@@ -49,7 +49,7 @@ Scan automatically — don't ask, CHECK. Report what exists and what's missing.
 **L2: Has Sources**
 - MCPs and plugins are configured in THREE locations — check ALL of them:
   1. `~/.claude/.mcp.json` — read and parse the `mcpServers` key (standalone MCP servers)
-  2. `~/.claude/settings.json` — read and parse the `enabledPlugins` array (marketplace plugins like Gmail, Telegram, Figma)
+  2. `~/.claude/settings.json` — read and parse the `enabledPlugins` object (key:boolean dict, e.g., `"gmail@claude-plugins-official": true`)
   3. Project-level `.mcp.json` files — Glob for them in the current project
 - For each source found, try a lightweight test call (skip if tool not available):
   - Gmail: try `gmail_get_profile` or `gmail_list_labels`
@@ -186,8 +186,8 @@ After setup is complete:
 
 1. Save baseline to `~/cos-reviews/[DATE]-baseline.md` using the YAML format below
 2. Tell the user: "Your first review is in 2 weeks. Run `/cos-review` then."
-3. If they have Telegram connected, offer to set a reminder: "Want me to schedule a Telegram reminder in 2 weeks?"
-4. If yes, use the `/schedule` skill or create a calendar event
+3. If they have Telegram connected, offer to set a reminder: "Want me to send you a Telegram reminder in 2 weeks?"
+4. If yes, send a Telegram message with a reminder, or suggest they set a phone reminder/calendar event
 
 ---
 
@@ -233,12 +233,14 @@ SYSTEM HEALTH
 
 ### Step 4: Conversation Pattern Check
 
-Scan conversation history since last review date:
-- New skills used?
-- New MCPs called?
-- Manual repetitions detected?
+Scan MEMORY.md entries created since last review date (Glob `~/.claude/projects/*/memory/*.md`, check file modification dates). Do NOT try to read conversation transcripts (.jsonl) — they are not accessible.
 
-"Since your last review, you manually [task] X times. That's a skill candidate."
+Look for patterns in memory entries:
+- New skills mentioned?
+- New MCPs referenced?
+- Repeated tasks or complaints?
+
+"Since your last review, your memory mentions [task] multiple times. That's a skill candidate."
 
 ### Step 5: Growth Question
 
@@ -322,7 +324,7 @@ YOUR CoS HEALTH — [DATE]
 ⚠️ Calendar plugin    token expired 2d ago
 ✅ AnySite MCP        responding
 ✅ Telegram MCP       responding
-✅ Ollama             qwen3.5:7b loaded
+✅ Ollama             qwen3.5 loaded
 ✅ /morning           last run: today 07:00
 ✅ Memory             24 entries
 ⚠️ Vault              last /atomize: 8 days ago
