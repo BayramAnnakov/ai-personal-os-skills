@@ -56,7 +56,10 @@ Scan automatically — don't ask, CHECK. Report what exists and what's missing.
   - Telegram: try `list_chats` (limit 1)
   - AnySite: try `duckduckgo_search` with "test"
   - Calendar: try listing today's events
-- Ollama: run `ollama list` (works on Mac, Windows, Linux). If command not found, mark as not installed
+- Ollama: run `ollama list` (works on Mac, Windows, Linux). If command not found, mark as not installed.
+  - If installed, check for both local models (e.g., qwen3.5) and cloud models (e.g., kimi-k2.5:cloud, qwen3.5:cloud)
+  - Note: cloud models via Ollama are fast and cheap but data goes to a third-party provider. Local models are fully private but require a strong GPU — slow on laptops.
+  - If not installed and user has privacy or cost concerns, suggest: `brew install ollama` then `ollama launch claude --model kimi-k2.5:cloud` for cost savings, or local model for full privacy
 - Report which sources are installed, which respond, which have expired tokens
 
 **L3: Has Procedures**
@@ -324,7 +327,7 @@ YOUR CoS HEALTH — [DATE]
 ⚠️ Calendar plugin    token expired 2d ago
 ✅ AnySite MCP        responding
 ✅ Telegram MCP       responding
-✅ Ollama             qwen3.5 loaded
+✅ Ollama             installed (qwen3.5 local + kimi-k2.5:cloud)
 ✅ /morning           last run: today 07:00
 ✅ Memory             24 entries
 ⚠️ Vault              last /atomize: 8 days ago

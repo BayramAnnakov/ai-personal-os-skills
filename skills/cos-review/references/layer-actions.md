@@ -22,7 +22,7 @@ When a layer has gaps, suggest the highest-leverage action from this list. ONE a
 | No Calendar | "Install Calendar plugin: `/plugin install google-calendar@claude-plugins-official`" | CoS knows your schedule |
 | No AnySite | "Install AnySite MCP for LinkedIn/Twitter/Reddit research. See course gist for setup." | CoS can research the web |
 | No Telegram | "Install Telegram plugin: `/plugin install telegram@claude-plugins-official`" | CoS reaches you on your phone |
-| No Ollama | "Mac: `brew install ollama && ollama pull qwen3.5` / Windows: download from ollama.com, then `ollama pull qwen3.5`. IMPORTANT: set `OLLAMA_CONTEXT_LENGTH=64000 ollama serve` before using with Claude Code." | Sensitive data stays local |
+| No Ollama | "Mac: `brew install ollama` / Windows: download from ollama.com. For cost savings: `ollama launch claude --model kimi-k2.5:cloud` (fast, cheap, no GPU). For full privacy: `ollama pull qwen3.5` then `ollama launch claude --model qwen3.5` (slow on laptops, needs strong GPU; set `OLLAMA_CONTEXT_LENGTH=64000 ollama serve`)." | Alternative models for cost or privacy |
 | Token expired | "Re-install the plugin: `/plugin install [name]@claude-plugins-official` — refreshes OAuth" | Restores broken connection |
 
 **Build offer:** "Want me to install [MCP] now? I'll walk you through the auth."
