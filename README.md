@@ -45,6 +45,24 @@ Extract atomic ideas from any text into structured Zettelkasten-style notes.
 /atomize [paste an article, book notes, meeting transcript, or any text]
 ```
 
+### `/cos-review` - Chief of Staff System Review
+
+Diagnose, build, and grow your personal AI operating system. Three modes for different needs.
+
+**What it does:**
+- **`/cos-review setup`** — First-time system scan: checks all 5 layers (identity, sources, procedures, initiative, results), analyzes your conversation history for usage patterns, scores your system 0-25, guides you through fixing the biggest gaps
+- **`/cos-review`** — Bi-weekly review: smart diagnostic that remembers your previous score, tests all MCPs and plugins, detects manual repetitions (skill candidates), suggests ONE highest-leverage action
+- **`/cos-review status`** — 30-second health check: tests every MCP/plugin connection, checks scheduled tasks, reports with ✅/⚠️ icons
+
+**Cross-platform:** Works on Mac, Windows, and Linux. Detects your OS and adapts (LaunchAgents vs schtasks vs cron).
+
+**Example:**
+```
+/cos-review setup    # First run — full scan + guided fixes
+/cos-review          # Every 2 weeks — track your growth
+/cos-review status   # Quick health check
+```
+
 ### `/linkedin-research-post` - Research-to-LinkedIn Pipeline
 
 Research a topic across platforms and publish a LinkedIn post in your voice.
@@ -75,6 +93,7 @@ In Claude Code, add the marketplace and install:
 /plugin install onboarding@ai-personal-os-skills
 /plugin install daily-log@ai-personal-os-skills
 /plugin install atomize@ai-personal-os-skills
+/plugin install cos-review@ai-personal-os-skills
 /plugin install linkedin-research-post@ai-personal-os-skills
 /reload-plugins
 ```
@@ -92,6 +111,7 @@ cp -r ai-personal-os-skills/skills/* ~/.claude/skills/
 cp -r ai-personal-os-skills/skills/onboarding ~/.claude/skills/
 cp -r ai-personal-os-skills/skills/daily-log ~/.claude/skills/
 cp -r ai-personal-os-skills/skills/atomize ~/.claude/skills/
+cp -r ai-personal-os-skills/skills/cos-review ~/.claude/skills/
 cp -r ai-personal-os-skills/skills/linkedin-research-post ~/.claude/skills/
 ```
 
@@ -111,6 +131,9 @@ Open Claude Code and type the skill name:
 /onboarding          # Set up your AI workspace (do this first)
 /daily-log           # Daily 5-min journal
 /atomize [text]      # Extract atomic notes from content
+/cos-review setup    # Diagnose your system (do after onboarding)
+/cos-review          # Bi-weekly performance review
+/cos-review status   # Quick health check
 ```
 
 For LinkedIn publishing, first set up AnySite + Unipile MCPs (see skill prerequisites), then:
@@ -125,7 +148,9 @@ These skills are designed to build on each other:
 1. **`/onboarding`** - Create your CLAUDE.md and SOUL.md (foundation)
 2. **`/daily-log`** - Build daily journaling habit (data collection)
 3. **`/atomize`** - Extract knowledge from content (knowledge system)
-4. **`/linkedin-research-post`** - Research and publish (output)
+4. **`/cos-review setup`** - Diagnose your system and fix gaps (system health)
+5. **`/linkedin-research-post`** - Research and publish (output)
+6. **`/cos-review`** - Bi-weekly review to track growth (ongoing)
 
 ## Course
 
