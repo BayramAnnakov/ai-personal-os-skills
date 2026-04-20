@@ -63,6 +63,23 @@ Diagnose, build, and grow your personal AI operating system. Three modes for dif
 /cos-review status   # Quick health check
 ```
 
+### `/slide-inspector` - PowerPoint QA
+
+Systematic quality audit for PowerPoint decks. Catches layout bugs, design inconsistencies, and structural anti-patterns that make slides look unpolished.
+
+**What it does:**
+- **Programmatic analysis** - unpacks .pptx XML and checks for bounding box overlaps, edge proximity, font/color inventory, text box fragmentation ("one box per line"), code snippet styling, element density
+- **Visual inspection checklist** - 8 categories (overlap/collision, spacing, typography, code, consistency, simplicity, anti-patterns, slide-type-specific) for human/AI-vision review
+- **Severity-tagged report** - 🔴 critical / 🟡 warning / 🟢 suggestion
+- **Post-creation QA** - designed to run after the pptx skill before delivering any deck
+
+**Usage:**
+```
+/slide-inspector presentation.pptx
+```
+
+Or invoked automatically as a QA step after generating a deck with the pptx skill.
+
 ### `/linkedin-research-post` - Research-to-LinkedIn Pipeline
 
 Research a topic across platforms and publish a LinkedIn post in your voice.
@@ -94,6 +111,7 @@ In Claude Code, add the marketplace and install:
 /plugin install daily-log@ai-personal-os-skills
 /plugin install atomize@ai-personal-os-skills
 /plugin install cos-review@ai-personal-os-skills
+/plugin install slide-inspector@ai-personal-os-skills
 /plugin install linkedin-research-post@ai-personal-os-skills
 /reload-plugins
 ```
@@ -112,6 +130,7 @@ cp -r ai-personal-os-skills/skills/onboarding ~/.claude/skills/
 cp -r ai-personal-os-skills/skills/daily-log ~/.claude/skills/
 cp -r ai-personal-os-skills/skills/atomize ~/.claude/skills/
 cp -r ai-personal-os-skills/skills/cos-review ~/.claude/skills/
+cp -r ai-personal-os-skills/skills/slide-inspector ~/.claude/skills/
 cp -r ai-personal-os-skills/skills/linkedin-research-post ~/.claude/skills/
 ```
 
@@ -134,6 +153,7 @@ Open Claude Code and type the skill name:
 /cos-review setup    # Diagnose your system (do after onboarding)
 /cos-review          # Bi-weekly performance review
 /cos-review status   # Quick health check
+/slide-inspector presentation.pptx   # QA a PowerPoint deck
 ```
 
 For LinkedIn publishing, first set up AnySite + Unipile MCPs (see skill prerequisites), then:

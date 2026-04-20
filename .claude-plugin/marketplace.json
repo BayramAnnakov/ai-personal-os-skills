@@ -23,6 +23,11 @@
       "name": "linkedin-research-post",
       "source": "./",
       "description": "Research a topic across LinkedIn, Reddit, YouTube via sub-agents, then draft and publish a LinkedIn post in your voice."
+    },
+    {
+      "name": "slide-inspector",
+      "source": "./",
+      "description": "Systematic quality audit for PowerPoint decks — programmatic XML analysis for overlaps, fragmentation, code styling, plus a visual inspection checklist. Use as post-creation QA after the pptx skill."
     }
   ]
 }

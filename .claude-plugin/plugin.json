@@ -1,10 +1,10 @@
 {
   "name": "ai-personal-os-skills",
-  "description": "Skills for building your AI Personal OS: onboarding, daily journaling, knowledge extraction, LinkedIn research-to-publish pipeline, and Chief of Staff system review.",
-  "version": "1.1.0",
+  "description": "Skills for building your AI Personal OS: onboarding, daily journaling, knowledge extraction, LinkedIn research-to-publish pipeline, Chief of Staff system review, and PowerPoint deck QA.",
+  "version": "1.2.0",
   "author": {
     "name": "Bayram Annakov",
     "email": "bayram@onsa.ai"
   },
-  "keywords": ["productivity", "personal-os", "onboarding", "daily-log", "zettelkasten", "linkedin", "research", "skills", "cos-review", "chief-of-staff", "diagnostics"]
+  "keywords": ["productivity", "personal-os", "onboarding", "daily-log", "zettelkasten", "linkedin", "research", "skills", "cos-review", "chief-of-staff", "diagnostics", "slide-inspector", "powerpoint", "pptx"]
 }
