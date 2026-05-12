@@ -75,15 +75,19 @@ The script outputs a JSON report. Review it, but don't just parrot it — use it
 
 ### Step 2: Visual Inspection
 
-Convert slides to images and inspect them visually:
+Convert slides to images and inspect them visually. Uses `soffice` (LibreOffice) + `pdftoppm` (Poppler) — both common system tools, neither tied to any other skill:
 
 ```bash
-# Use the pptx skill's conversion pipeline (from the pptx skill's scripts directory)
-python <pptx-skill>/scripts/office/soffice.py --headless --convert-to pdf presentation.pptx
+# Convert pptx → pdf, then pdf → jpeg per slide
+soffice --headless --convert-to pdf presentation.pptx
 rm -f slide-*.jpg
 pdftoppm -jpeg -r 150 presentation.pdf slide
 ls -1 "$PWD"/slide-*.jpg
 ```
+
+If LibreOffice isn't installed: `brew install --cask libreoffice` (macOS) or `apt install libreoffice` (Debian/Ubuntu). `pdftoppm` comes with `poppler` (`brew install poppler`).
+
+If the user has the pptx skill installed, an alternative is its `scripts/thumbnail.py` which produces a multi-slide grid image instead of one-image-per-slide — useful for deck-level scanning.
 
 Then view each slide image. Read `references/checklist.md` for the full visual inspection checklist. The key categories:
 
@@ -297,16 +301,15 @@ Use these guidelines to assign severity:
 **Templates** (bundled):
 - `user-overrides.yaml.example` — Schema and worked example for custom checks
 
-**From the pptx skill** (locate via `available_skills` → pptx → location):
-- `scripts/office/soffice.py` — PDF conversion for visual inspection
-- `scripts/office/unpack.py` — XML extraction (used internally by inspect_slides.py if needed)
+**System tools** (must be installed; not bundled):
+- `soffice` (LibreOffice) — PowerPoint to PDF conversion. Install: `brew install --cask libreoffice` or `apt install libreoffice`.
+- `pdftoppm` (Poppler) — PDF to JPEG. Install: `brew install poppler` or `apt install poppler-utils`.
+- `python3` — runs `inspect_slides.py`. Only Python stdlib used (no PIL/python-pptx required).
+- `jq` — used by `calibrate.sh` for jsonl parsing. Install: `brew install jq` or `apt install jq`.
 
-**System tools** (pre-installed in the environment):
-- `pdftoppm` (Poppler) — PDF to images
-- `defusedxml` — Safe XML parsing (`pip install defusedxml` if missing)
-- `jq` — JSON parsing for calibration
+**Optional**: the pptx skill (Anthropic's bundled `document-skills/pptx`) ships a `scripts/thumbnail.py` that produces a single grid image instead of per-slide images. If the user has it installed, prefer that for fast deck-level scans. slide-inspector does NOT require the pptx skill — they're independent.
 
-**Path resolution at runtime**: Use `${CLAUDE_SKILL_DIR}` for paths inside this skill — Claude Code resolves it automatically regardless of where this skill is installed. For the pptx skill's soffice script, resolve `<pptx-skill>` by finding the pptx skill's location from `available_skills`. Example: if the pptx skill is at `/mnt/skills/public/pptx/`, its soffice script is at `/mnt/skills/public/pptx/scripts/office/soffice.py`.
+**Path resolution at runtime**: Use `${CLAUDE_SKILL_DIR}` for paths inside this skill — Claude Code resolves it automatically regardless of where this skill is installed.
 
 ## Gotchas
 
