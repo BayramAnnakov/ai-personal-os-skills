@@ -82,10 +82,13 @@ TOOL_WATERMARK_PATTERNS = [
 ]
 
 # In-slide scaffolding leak patterns
+# NOTE: timing regex matches only `min/minutes` — `seconds`/`hours` were over-matching
+# legitimate content (e.g., "the 3-second test" got flagged as scaffolding).
+# Real scaffolding overwhelmingly uses minutes (agenda timings, block markers).
 SCAFFOLDING_PATTERNS = [
     r"\bblock\s+\d+\b",                      # "Block 1", "Block 2"
     r"\bstep\s+\d+\s*[·•:]",                 # "Step 0 ·", "Step 1 :"
-    r"\b\d+\s*(min|sec|hr|minutes?|seconds?|hours?)\b",  # "10min", "5 minutes"
+    r"\b\d+\s*(min|minutes?)\b",             # "10min", "5 minutes"
     r"\bsection\s+\d+:",                     # "Section 3:"
     r"\bpart\s+\d+\s+of\s+\d+\b",            # "Part 1 of 5"
 ]
