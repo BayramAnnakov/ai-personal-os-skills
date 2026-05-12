@@ -1,11 +1,13 @@
 ---
 name: slide-inspector
-description: "Visual and structural inspection of PowerPoint slides for quality, consistency, and design issues. Use this skill whenever reviewing, auditing, or QA-ing a .pptx file — whether you just created it or the user uploaded one. Triggers include: 'inspect my slides', 'check this deck', 'review this presentation', 'QA these slides', 'audit my pptx', 'are there any issues with this deck', or any request to evaluate slide quality. Also use as the QA step after creating any presentation with the pptx skill — every deck you produce should pass this inspection before being delivered. If you're about to declare a presentation 'done', run this skill first."
+description: "Quality audit for PowerPoint decks. Catches layout bugs, design inconsistencies, accessibility issues, AI-generation tells, and silent generator failures."
+when_to_use: "Use whenever reviewing, auditing, or QA-ing a .pptx file — whether you just created it or the user uploaded one. Triggers: 'inspect my slides', 'check this deck', 'review this presentation', 'QA these slides', 'audit my pptx', 'are there any issues with this deck'. Always use as the QA step after creating any presentation with the pptx skill — every deck must pass this inspection before delivery. If you're about to declare a presentation 'done', run this skill first. Also: 'calibrate slide-inspector' triggers one-time calibration mode that mines the user's correction history."
+allowed-tools: Bash(python3 *) Bash(bash *) Bash(pdftoppm *) Bash(ls *) Bash(rm slide-*.jpg) Read
 ---
 
 # Slide Inspector
 
-A systematic quality audit for PowerPoint presentations. Catches layout bugs, design inconsistencies, readability problems, and structural anti-patterns that make slides look unpolished.
+A systematic quality audit for PowerPoint presentations. Catches layout bugs, design inconsistencies, readability problems, structural anti-patterns, and AI-generation tells that make slides look unpolished.
 
 ## When This Runs
 
@@ -13,27 +15,61 @@ A systematic quality audit for PowerPoint presentations. Catches layout bugs, de
 
 **Standalone audit:** When a user uploads a .pptx and asks you to review it, inspect it, or check for issues.
 
+**Calibration (one-off, opt-in):** When the user invokes `calibrate` mode, scan their CC history to learn their personal correction patterns and propose custom checks. See `references/calibration.md` for the procedure.
+
+## Step 0: First-Run Calibration Prompt
+
+Before starting any inspection, check whether the user has been offered calibration:
+
+1. Check if `~/.claude/skills/slide-inspector/user-overrides.yaml` exists.
+2. **If it does NOT exist** — this is the user's first invocation. Prompt them ONCE, briefly:
+   > "First time running slide-inspector. I can calibrate it to YOUR style by mining your past pptx correction history (~5-10 min). This adds custom checks for patterns you fix repeatedly that aren't in the defaults. Want to calibrate first? (yes / no)"
+3. Based on the answer:
+   - **yes** → Follow `references/calibration.md` to run the calibration procedure. It creates `user-overrides.yaml` populated with approved patterns. Then proceed with the inspection.
+   - **no** → Write a minimal stub to `~/.claude/skills/slide-inspector/user-overrides.yaml`:
+     ```yaml
+     # User declined calibration on first run. Hand-edit anytime to add custom checks.
+     # Re-run calibration any time with: "calibrate slide-inspector"
+     overrides:
+       calibration_status: declined
+     checks: []
+     ```
+     Then proceed with the inspection. Do not ask again.
+4. **If user-overrides.yaml DOES exist** — skip this step entirely. Calibration has either been completed or explicitly declined. Proceed straight to Step 1.
+
+This is a one-time UX moment per user. Once the file exists, it's never re-prompted. The user can re-run calibration any time by saying "calibrate slide-inspector" — that just appends new patterns to the existing file.
+
 ## The Inspection Pipeline
 
-The inspection has two complementary layers. Both are needed — programmatic analysis catches structural issues humans miss (overlapping coordinates, font inconsistencies), while visual inspection catches aesthetic issues code can't judge (awkward spacing, visual weight imbalance).
+The inspection has two complementary layers. Both are needed — programmatic analysis catches structural issues humans miss (overlapping coordinates, font inconsistencies, off-canvas elements), while visual inspection catches aesthetic issues code can't judge (awkward spacing, visual weight imbalance).
 
 ### Step 1: Programmatic Analysis
 
 Run the structural analyzer on the .pptx file:
 
 ```bash
-python <this-skill-directory>/scripts/inspect_slides.py presentation.pptx
+python3 ${CLAUDE_SKILL_DIR}/scripts/inspect_slides.py presentation.pptx
 ```
 
 This script unpacks the PPTX XML and checks for:
 - **Bounding box overlaps** — elements whose coordinates intersect
 - **Edge proximity** — elements too close to slide margins (< 0.5")
-- **Font inventory** — all fonts used, flagging inconsistencies (e.g., body text in 3 different fonts)
+- **Off-canvas elements with text** — content beyond slide bounds (visible during screen-share)
+- **Image aspect-ratio distortion** — rendered cx/cy ratio deviates >5% from source intrinsic ratio
+- **Marooned image** — small image (<15% of slide area) on otherwise-empty slide
+- **Empty / black-rectangle slides** — fewer than 3 elements OR large unfilled rectangle (silent generator failures)
+- **Disconnected diagram arrows** — `<p:cxnSp>` connectors with no shape endpoints
+- **Non-Latin script in text** — flags slides with Cyrillic/CJK/Arabic/etc. for visual font-coverage check (rendering as tofu/squares is a common bug)
+- **Font inventory** — all fonts used, flagging inconsistencies
 - **Color inventory** — all colors used, flagging palette sprawl
-- **Text box fragmentation** — multiple single-line text boxes stacked vertically where one multi-line box would work (the "one box per line" anti-pattern)
-- **Code snippet styling** — text using monospace fonts checked for: background fill, adequate padding, line height, box width vs content width
-- **Font size variance** — same-role text (titles, body, captions) using inconsistent sizes across slides
+- **Text box fragmentation** — multiple single-line text boxes stacked vertically (the "one box per line" anti-pattern)
+- **Code snippet styling** — text using monospace fonts checked for: background fill, padding, line height, box width vs content
+- **Font size variance** — same-role text using inconsistent sizes across slides
 - **Element count per slide** — flags slides with excessive element density
+- **Text density (presenter mode)** — >40 words = warning, >60 = critical
+- **In-slide scaffolding leak** — text matching timing labels (`Block 1 · 10min`, `Step N ·`, `\d+\s*min`) — generator metadata bleeding into slide content
+- **Tool watermarks** — text matching AI-output leaks: `Here's a polished`, `As an AI`, `I cannot`, trailing markdown `**`
+- **Vague title verbs** — titles starting with `Understanding X`, `Exploring Y`, `Navigating Z`, `Leveraging`, `Unlocking`, `Diving into` (AI scaffolding language)
 
 The script outputs a JSON report. Review it, but don't just parrot it — use it as input to your own judgment.
 
@@ -51,22 +87,23 @@ ls -1 "$PWD"/slide-*.jpg
 
 Then view each slide image. Read `references/checklist.md` for the full visual inspection checklist. The key categories:
 
-1. **Overlap & collision** — text through shapes, lines through words, stacked elements, footer colliding with content
+1. **Overlap & collision** — text through shapes, lines through words, stacked elements, footer colliding with content, off-canvas elements visible during screen-share
 2. **Spacing & alignment** — uneven gaps, elements too close, inconsistent margins, column misalignment
-3. **Typography** — font consistency, size hierarchy, contrast against background, text wrapping issues
+3. **Typography** — font consistency, size hierarchy, contrast against background, text wrapping issues, **non-Latin script rendering**
 4. **Code snippets** — monospace font, background fill, padding, no wrapping, readable contrast, syntax coloring if present
 5. **Visual consistency** — illustration style uniformity, icon treatment consistency, color palette adherence, image sizing patterns
-6. **Simplicity & comprehension** — text density per slide, information hierarchy clarity, reading flow
-7. **Structural anti-patterns** — "one box per line" fragmentation, redundant decorative elements, accent lines under titles (AI tell)
+6. **Image treatment** — aspect-ratio integrity, marooned images, disconnected diagram arrows
+7. **Simplicity & comprehension** — text density per slide (presenter mode: 40w threshold), information hierarchy clarity, reading flow
+8. **Structural anti-patterns** — "one box per line" fragmentation, accent lines under titles (AI tell), in-slide scaffolding leak, vague title verbs, tool watermarks, redundant decorative elements
 
 ### Step 3: Generate Report
 
 After both analysis passes, produce a structured report. The report has three output modes — use all three:
 
 **A) In-chat issue list** — A concise summary in conversation, organized by severity:
-- 🔴 **Critical** — Overlapping elements, text cut off, unreadable content
-- 🟡 **Warning** — Inconsistent fonts/sizes, spacing issues, missing code styling
-- 🟢 **Suggestion** — Minor aesthetic improvements, optional polish
+- 🔴 **Critical** — Overlapping elements, text cut off, unreadable content, off-canvas text visible during screen-share, empty slides, code in proportional font
+- 🟡 **Warning** — Inconsistent fonts/sizes, spacing issues, missing code styling, image aspect distortion, marooned images, scaffolding leaks, vague title verbs, non-Latin script needing font verification
+- 🟢 **Suggestion** — Minor aesthetic improvements, optional polish, AI-tell vocabulary
 
 **B) Annotated analysis** — For each slide with issues, describe what's wrong and where. Reference specific elements by their position (e.g., "the title text on slide 3 overlaps with the right-side image").
 
@@ -105,6 +142,7 @@ Common culprits:
 - Source citations/footers that crept up into content area
 - Icons placed inside text flow without adequate clearance
 - Shape backgrounds that don't fully contain their text
+- **Off-canvas elements with text content** — y-coordinate beyond slide bounds. Critical because screen-shares expose anything below the visible slide; "leftover from previous frame still present" is a classic AI-iteration bug.
 
 ### The "One Box Per Line" Anti-Pattern
 This is one of the most common AI-generated slide problems. Instead of:
@@ -141,6 +179,19 @@ Code on slides needs special treatment to be readable. The inspection checks:
 - **Font size**: Code can be slightly smaller than body text (12-14pt is fine) but not so small it's unreadable (< 10pt).
 - **Syntax coloring**: If the code has syntax highlighting (colored keywords), check that the colors have adequate contrast against the background. Light yellow keywords on a white background = invisible.
 
+### Image Treatment
+
+- **Aspect-ratio integrity** — Each picture's rendered cx/cy ratio should match its embedded image's intrinsic pixel ratio. Deviation >5% means the image is stretched or squished; rescale to preserve ratio. This is the #1 empirical issue with AI-generated decks (~10× across 5 sessions in real-world correction history).
+- **Marooned images** — A single small image (<15% of slide area) sitting in a corner of an otherwise-empty slide is a layout failure. Either the image should be larger (use the canvas) or other content should fill the rest.
+- **Disconnected diagram arrows** — `<p:cxnSp>` connectors with no shape endpoints (free-floating arrows) usually indicate broken diagram generation. Common with AI-generated systems-thinking diagrams.
+
+### Non-Latin Script Coverage
+
+For decks containing Cyrillic, CJK, Arabic, Devanagari, Hebrew, Greek, etc.:
+
+- The analyzer flags slides whose text runs contain non-Latin characters. Visually verify that the rendered font supports the script — some fonts render Cyrillic/CJK as tofu (□□□) or wrong glyphs.
+- This is real-world breakage when the pptx generator picks Latin-only fonts for non-English content.
+
 ### Consistency Checks
 These span the entire deck, not individual slides:
 
@@ -152,13 +203,70 @@ These span the entire deck, not individual slides:
 - **Decoration patterns**: If slide 2 has icons in colored circles and slide 6 has bare icons, flag the inconsistency. Pick one treatment and stick with it.
 
 ### Simplicity & Comprehension
-Slides are a visual medium — dense text belongs in a document, not a deck.
 
-- **Text density**: Flag slides with > 80 words. Suggest splitting or reducing.
+Slides are a visual medium — dense text belongs in a document, not a deck. **This skill assumes presenter mode** (you're showing the slide while speaking). Density thresholds reflect that:
+
+- **Text density (presenter mode)**: Flag slides with >40 words as warning; >60 as critical. The presenter speaks the rest; the slide carries one idea.
 - **Element count**: Flag slides with > 8 distinct elements (shapes + text boxes + images). Visual clutter hurts comprehension.
 - **Font size floor**: Body text below 14pt is hard to read in a presentation setting. Flag anything below 12pt as critical.
 - **Hierarchy clarity**: Every slide should have a clear visual hierarchy — one dominant element, supporting elements subordinate. If everything is the same size/weight, the audience doesn't know where to look.
 - **Reading flow**: Content should flow left-to-right, top-to-bottom (for LTR languages). Flag layouts where the eye has to jump around.
+
+### Empty / Silent-Failure Slides
+
+- **Empty slides**: Fewer than 3 elements often indicates a placeholder slide that didn't get filled. Flag.
+- **Black or large unfilled rectangles**: Shapes with fill but no text covering >20% of slide area often indicate a generator error (image failed to load, placeholder rendered as colored box).
+
+### Structural Anti-Patterns
+
+- **"One box per line"** — Multiple stacked text boxes where a single multi-line text box should be used.
+- **Accent lines under titles** — Thin decorative lines under titles are a strong signal of AI generation. Use whitespace or background color instead.
+- **In-slide scaffolding leak** — Generator metadata bleeding into slide text: timing labels ("Block 1 · 10min"), step markers ("Step 0 · 8 min · Clear the W2 debt"), section numbers in slide body. Strip these.
+- **Tool watermarks / leftover prompt fragments** — "Here's a polished", "As an AI", "I cannot", trailing markdown `**` — slipped through generation if user prompt contained scaffolding.
+- **Vague title verbs** — Titles starting with "Understanding X", "Exploring Y", "Navigating Z", "Leveraging", "Unlocking", "Diving into" are AI-scaffolding language. Suggest a concrete title that states the slide's actual point.
+- **Identical layouts** — Are all content slides using the exact same layout? Vary between columns, cards, callouts, and full-bleed images.
+- **Bullet point overuse** — Are most slides just "title + bullet list"? Mix in other formats: stat callouts, comparison columns, timelines, diagrams.
+- **Placeholder artifacts** — Is there any leftover template text like "Click to add title", "Lorem ipsum", "XXX", "[Insert]"?
+- **Double bullets** — When bullet formatting is applied, are there also Unicode bullet characters (•) in the text, creating double bullets?
+
+### Deck-Level Structural Audits
+
+These checks span the whole deck rather than individual slides. They surface the kind of scaffolding bloat that experienced presenters strip out — the "skeleton" left behind when an AI builds a "complete" deck instead of a sparse briefing.
+
+- **Preamble overhead**: Count slides before the first content slide (title + agenda + accountability + intro). If preamble exceeds ~15% of total deck length, flag as "preamble feels heavy for deck size — consider opening straight into content."
+
+- **Decorative section dividers**: A section divider is a slide whose only content is a section label + tagline (no charts, screenshots, or data). Flag any divider whose section has fewer than 4 content slides — the divider is heavier than the section it introduces. Suggest replacing with a color-shifted title on the next content slide.
+
+- **Image-led slide hierarchy**: When a slide has a chart, screenshot, or photograph that is clearly the slide's primary information carrier, check that the visual occupies the majority of the canvas (>50% of slide area). If the title text-block is comparable in size to the chart, the layout is reading as "chart caption" rather than "chart." Suggest the inverted layout: chart on top full-width → thin rule → title in band below.
+
+- **Generated metaphorical imagery on specific-entity slides**: When a slide's topic names a specific real product, research paper, news incident, or company action (e.g., "Project Glasswing", "Anthropic post-mortem", "Figure 03 walks at White House"), and the visual on that slide is a stylized illustration / abstract metaphor, flag as "verify a real asset doesn't exist (official product graphic, research figure, press photo)." Real artifacts are nearly always more compelling than generated metaphors when the topic is concrete.
+
+- **Color-as-architecture overuse**: If section colors appear on multiple decorative elements per slide (title + accent bar + glyph + underline), flag as "color is doing structural work that could be done by typography alone." A single colored title is usually sufficient.
+
+- **Closing-slide weakness**: The final slide should ask a directive question or specify a concrete next step, not merely announce a generic ritual ("Q&A", "Thank you", "Commitment round"). Flag generic closes as a missed opportunity.
+
+## User Overlay (Calibration)
+
+Every user has personal correction patterns that go beyond the defaults. The skill supports a `user-overrides.yaml` file that adds custom checks specific to the user.
+
+To generate this file from the user's own correction history:
+
+```
+User: "calibrate slide-inspector"
+```
+
+This triggers the calibration procedure described in `references/calibration.md`:
+
+1. Scan `~/.claude/projects/*/` for pptx-related sessions
+2. Extract user messages that follow pptx generation or slide-inspector runs
+3. Cluster correction patterns
+4. Propose top patterns as candidate custom checks (with verbatim examples)
+5. User approves which to add
+6. Write approved checks to `~/.claude/skills/slide-inspector/user-overrides.yaml`
+
+The user-overrides file is loaded automatically on every subsequent inspection. See `user-overrides.yaml.example` for the schema and worked examples.
+
+**Calibration is opt-in.** New users get full default coverage out of the box. Calibration is recommended after ~10+ pptx sessions when there's enough correction history to find real patterns.
 
 ## Severity Classification
 
@@ -166,9 +274,9 @@ Use these guidelines to assign severity:
 
 | Severity | Criteria | Examples |
 |----------|----------|----------|
-| 🔴 Critical | Content is unreadable, missing, or visually broken | Text cut off, elements overlapping making text illegible, code in proportional font |
-| 🟡 Warning | Noticeable quality issue that looks unprofessional | Inconsistent fonts across slides, uneven spacing, missing code background, "one box per line" pattern |
-| 🟢 Suggestion | Minor polish that would elevate the deck | Slightly tighter margins possible, illustration style could be more unified, color palette could be tighter |
+| 🔴 Critical | Content is unreadable, missing, or visually broken | Text cut off, elements overlapping making text illegible, code in proportional font, off-canvas text visible during screen-share, empty slides, non-Latin text rendering as tofu |
+| 🟡 Warning | Noticeable quality issue that looks unprofessional | Inconsistent fonts across slides, uneven spacing, missing code background, "one box per line" pattern, image aspect distortion, marooned images, scaffolding leaks, vague title verbs, tool watermarks |
+| 🟢 Suggestion | Minor polish that would elevate the deck | Slightly tighter margins possible, illustration style could be more unified, color palette could be tighter, AI-tell vocabulary |
 
 ## Post-Inspection: What Happens Next
 
@@ -180,6 +288,14 @@ Use these guidelines to assign severity:
 
 **Own scripts** (bundled with this skill):
 - `scripts/inspect_slides.py` — Programmatic XML analysis
+- `scripts/calibrate.sh` — Bash pre-filter for the calibration procedure (greps + jq-extracts pptx-related session corrections from `~/.claude/projects/`)
+
+**Own references** (bundled):
+- `references/checklist.md` — Full visual inspection checklist
+- `references/calibration.md` — Step-by-step procedure for calibration mode
+
+**Templates** (bundled):
+- `user-overrides.yaml.example` — Schema and worked example for custom checks
 
 **From the pptx skill** (locate via `available_skills` → pptx → location):
 - `scripts/office/soffice.py` — PDF conversion for visual inspection
@@ -188,5 +304,26 @@ Use these guidelines to assign severity:
 **System tools** (pre-installed in the environment):
 - `pdftoppm` (Poppler) — PDF to images
 - `defusedxml` — Safe XML parsing (`pip install defusedxml` if missing)
+- `jq` — JSON parsing for calibration
 
-**Path resolution at runtime**: When this skill triggers, resolve `<this-skill-directory>` to the directory containing this SKILL.md. Resolve `<pptx-skill>` by finding the pptx skill's location from `available_skills`. For example, if the pptx skill is at `/mnt/skills/public/pptx/`, its soffice script is at `/mnt/skills/public/pptx/scripts/office/soffice.py`.
+**Path resolution at runtime**: Use `${CLAUDE_SKILL_DIR}` for paths inside this skill — Claude Code resolves it automatically regardless of where this skill is installed. For the pptx skill's soffice script, resolve `<pptx-skill>` by finding the pptx skill's location from `available_skills`. Example: if the pptx skill is at `/mnt/skills/public/pptx/`, its soffice script is at `/mnt/skills/public/pptx/scripts/office/soffice.py`.
+
+## Gotchas
+
+Real-world quirks that have bitten this skill in practice. Read these before reporting findings.
+
+- **`<p:sp>` shapes always carry an empty `<p:txBody>`** in python-pptx/PowerPoint output, whether or not the user added text. The analyzer's `parse_element` defaults `<p:sp>` to `shape` and only promotes to `textbox` when actual text is present. If you see a "blank-rectangle" issue, the analyzer correctly identified a filled shape with no real text — don't second-guess it.
+
+- **Title placeholders may have no `<a:xfrm>` element**. They inherit position from the slide layout. The analyzer falls back to a default title-area bbox so the title still reaches `vague-title` and other title checks. The reported coordinates for inherited-position titles are approximate, not exact.
+
+- **Off-canvas elements with text are screen-share spoilers, even if they look "decorative"**. Flag as critical regardless of whether the text seems important — anyone screen-sharing the deck will see anything below the slide. Common cause: leftover element from a previous frame during AI iteration.
+
+- **`non-latin-script` is a flag for visual review, not a confirmed font-coverage failure**. The analyzer detects script presence but doesn't verify font coverage. Always render the slide and check whether the text appears as readable glyphs vs tofu (□□□).
+
+- **The `placeholder-leak` check is a substring match** — it will fire on the literal word "placeholder" in any context. If a slide is legitimately ABOUT placeholders (e.g., a tutorial slide), this is a false positive — exercise judgment.
+
+- **Slide dimensions vary** — 4:3 (10×7.5") vs 16:9 widescreen (13.33×7.5"). The analyzer reads from `presentation.xml` and falls back to widescreen if missing. Off-canvas calculations adjust automatically.
+
+- **Image intrinsic dimensions are read directly from PNG/JPEG/GIF headers** with no PIL dependency. This works for most embeds but fails silently for unusual formats (TIFF, WMF, EMF). If aspect-distortion checks miss an image, check the embedded format.
+
+- **Density thresholds assume presenter mode** (40w warning, 60w critical). For document-style decks (slidedocs intended for reading, not presenting), these thresholds are too aggressive — note this in your report rather than fixing the slide.

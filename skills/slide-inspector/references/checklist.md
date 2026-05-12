@@ -8,9 +8,12 @@ Use this checklist when visually reviewing slide images. The programmatic analyz
 3. [Typography](#typography)
 4. [Code Snippets](#code-snippets)
 5. [Visual Consistency](#visual-consistency)
-6. [Simplicity & Comprehension](#simplicity--comprehension)
-7. [Structural Anti-Patterns](#structural-anti-patterns)
-8. [Slide-Type-Specific Checks](#slide-type-specific-checks)
+6. [Image Treatment](#image-treatment)
+7. [Non-Latin Script Coverage](#non-latin-script-coverage)
+8. [Simplicity & Comprehension](#simplicity--comprehension)
+9. [Empty / Silent-Failure Slides](#empty--silent-failure-slides)
+10. [Structural Anti-Patterns](#structural-anti-patterns)
+11. [Slide-Type-Specific Checks](#slide-type-specific-checks)
 
 ---
 
@@ -25,6 +28,8 @@ These are the highest-priority visual bugs. Even a 1-pixel overlap makes a slide
 - [ ] **Decorative vs content conflict**: Do decorative elements (background shapes, accent lines, watermarks) interfere with reading the actual content?
 - [ ] **Icon-text clearance**: When icons sit next to text, is there enough gap (at least 0.15") between them?
 - [ ] **Title wrapping problems**: If a title wraps to two lines, does it push into or overlap with content below? (Common with decorative underlines designed for single-line titles.)
+- [ ] **Off-canvas elements visible during screen-share**: Any elements positioned BELOW or to the RIGHT of the slide bounds. Even though they're "outside" the slide, screen-share viewers see the full window. Common AI-iteration bug: leftover elements from a previous frame still hanging below the visible slide area.
+- [ ] **Person-image overlap with title text**: On title slides where a portrait/character is meant to be visible, check that text isn't covering the face/key parts of the image.
 
 ## Spacing & Alignment
 
@@ -80,17 +85,44 @@ These checks span the entire deck. Look at all slides as a set, not individually
 - [ ] **Decorative element repetition**: If a visual motif is used (e.g., rounded corners on cards, gradient bars), is it applied everywhere it should be?
 - [ ] **Layout pattern consistency**: Do slides with similar content (e.g., "feature X" and "feature Y") use the same layout?
 
+## Image Treatment
+
+These checks catch the most-frequent empirical issues with AI-generated decks: stretched images, marooned images, broken diagrams.
+
+- [ ] **Aspect-ratio integrity**: Compare each picture's rendered dimensions to its source. If the rendered W:H ratio differs >5% from the source image's intrinsic pixel ratio, the image is stretched or squished. Rescale to preserve the source ratio.
+- [ ] **Marooned images**: A small image (<15% of slide area) sitting alone on a mostly-empty slide is a layout failure. Either enlarge the image to use the canvas, or add other content to fill the slide.
+- [ ] **Disconnected diagram arrows**: Arrows/connectors with floating endpoints (not attached to any shape) usually mean the diagram broke during generation. Reattach to source/target shapes.
+- [ ] **Image quality at projection size**: Even a high-res image looks bad if compressed too aggressively. Check for visible compression artifacts (blockiness, ringing) at full-screen view.
+- [ ] **Image cropping**: Important content (faces, key chart elements) is not cut off by the crop bounds.
+
+## Non-Latin Script Coverage
+
+For decks containing non-Latin text (Cyrillic, CJK, Arabic, Devanagari, Hebrew, Greek, Thai, etc.):
+
+- [ ] **Font supports the script**: Verify the rendered font has Unicode coverage for the script in use. Common bug: text renders as tofu (□□□) or wrong glyphs because the AI picked a Latin-only font for non-English content.
+- [ ] **Mixed-script consistency**: If the deck mixes Latin + non-Latin text on the same slide, are both rendered with proper visual weight matching? (Some fonts have very different x-heights between scripts.)
+- [ ] **Punctuation rendering**: CJK and RTL scripts have script-specific punctuation. Check that quotation marks, dashes, and brackets render correctly for the script.
+
 ## Simplicity & Comprehension
 
-A slide should communicate one idea clearly. If you need 10 seconds to understand what the slide is saying, it's too complex.
+A slide should communicate one idea clearly. If you need 10 seconds to understand what the slide is saying, it's too complex. **This checklist assumes presenter mode** (you're showing the slide while speaking). For document-style decks (slidedocs), thresholds are looser.
 
 - [ ] **One idea per slide**: Can you state the slide's message in one sentence? If not, it may need splitting.
-- [ ] **Text density**: Is there so much text that it becomes a "reading slide" rather than a "presenting slide"? More than 5-6 bullet points or ~80 words is usually too much.
+- [ ] **Text density (presenter mode)**: ≤40 words per slide is the warning threshold; >60 words is critical. The presenter speaks the rest; the slide carries one idea.
 - [ ] **Visual focus point**: Is there one element that draws the eye first? If everything competes for attention equally, the audience doesn't know where to look.
 - [ ] **Reading flow**: Does the content flow naturally left-to-right, top-to-bottom? Or does the eye have to jump around?
 - [ ] **Redundancy**: Is the slide title just restating what the bullets say? Eliminate redundancy.
 - [ ] **Label clarity**: Are all charts, diagrams, and images clearly labeled? Can you understand them without the speaker explaining?
 - [ ] **Jargon density**: Would the target audience understand all the terms used? Acronyms without definitions are a common problem.
+
+## Empty / Silent-Failure Slides
+
+Generators sometimes silently fail to fill a slide. These checks catch the result.
+
+- [ ] **Empty slides**: Slides with very few elements (≤2) are often placeholder slides that didn't get filled. Either add content or delete the slide.
+- [ ] **Black or large unfilled rectangles**: A shape with fill but no text covering >20% of slide area often means an image failed to load or a placeholder rendered as a colored box.
+- [ ] **Frontmatter empty**: A title slide where the title or subtitle is blank — placeholder leaked through.
+- [ ] **Charts with one data point**: A time-series chart with a single point usually means the data aggregation went wrong. Check the source.
 
 ## Structural Anti-Patterns
 
@@ -98,6 +130,9 @@ These are patterns that are technically "correct" but indicate poor slide constr
 
 - [ ] **"One box per line"**: Are there multiple stacked text boxes where a single multi-line text box should be used? This is the most common AI-generated slide problem. Tell-tale signs: slightly uneven vertical spacing between lines, and selecting one line in PowerPoint selects only that line (not the whole paragraph).
 - [ ] **Accent lines under titles**: Thin decorative lines under titles are a strong signal of AI generation. Use whitespace or background color instead.
+- [ ] **In-slide scaffolding leak**: Generator metadata bleeding into slide text — timing labels ("Block 1 · 10min"), step markers ("Step 0 ·"), section numbers in slide body. Strip these.
+- [ ] **Tool watermarks / leftover prompt fragments**: "Here's a polished", "As an AI", "I cannot", trailing markdown `**`. These are AI-output scaffolding that slipped through.
+- [ ] **Vague title verbs**: Titles starting with "Understanding X", "Exploring Y", "Navigating Z", "Leveraging", "Unlocking", "Diving into" are AI-scaffolding language. Rewrite as a concrete title that states the slide's actual point.
 - [ ] **Identical layouts**: Are all content slides using the exact same layout? Vary between columns, cards, callouts, and full-bleed images.
 - [ ] **Bullet point overuse**: Are most slides just "title + bullet list"? Mix in other formats: stat callouts, comparison columns, timelines, diagrams.
 - [ ] **Placeholder artifacts**: Is there any leftover template text like "Click to add title", "Lorem ipsum", "XXX", "[Insert]"?
